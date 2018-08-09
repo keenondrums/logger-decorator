@@ -33,6 +33,27 @@ export class Car {
 }
 ```
 
+You can also implement IHasTsLogClassLogger you ts-log-class will use imeplemnted logger. Could be useful if you want want to log parent classes, but the logger will be defined in child classes.
+
+```ts
+import log, { IHasTsLogClassLogger } from "ts-log-class";
+
+@log()
+export class Car implements IHasTsLogClassLogger {
+  numWheels: number = 4;
+  tsLogClassLogger = console.log
+  // Will use tsLogClassLogger for logging
+
+  drive(mph: number): Promise<string> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(`Driving ${mph.toString()}mph!`);
+      }, 100);
+    });
+  }
+}
+```
+
 
 See [main.spec.ts](https://github.com/bakerstreet-industries/ts-log-class/blob/master/tests/main.spec.ts) for additional usage examples.
 
