@@ -88,6 +88,8 @@ var JSON = __webpack_require__(1);
  * You may override the default `hook` method to format the message output however you like and override
  * the `out` method with any function matching this interface: `(message?: any, ...optionalParams: any[]) => void`.
  *
+ * You can implement IHasTsLogClassLogger interface and tsLogClassLogger will be used for logging instead. It overrides `out` property.
+ *
  * You can also set a logging strategy. By default it logs after function execution. You can set strategy to 'before-after'
  * to make it log before and after function execution.
  *
@@ -123,10 +125,11 @@ function applyMonkeyPatch(target, prototype, method, methodName, opts) {
             rest[_i] = arguments[_i];
         }
         var instance = this;
+        var out = this.tsLogClassLogger || opts.out;
         var doLog = function (params, when, val) {
-            opts.out(opts.hook({
+            out(opts.hook({
                 when: when,
-                className: prototype.constructor.name,
+                className: instance.constructor.name,
                 methodName: methodName,
                 timestamp: Date.now(),
                 arguments: buildParameterHash(params, method),

@@ -1,3 +1,6 @@
+export interface IHasTsLogClassLogger {
+    tsLogClassLogger: (message?: any, ...optionalParams: any[]) => void;
+}
 export declare type ILogStrategies = "after" | "before-after";
 /**
  * Builds a set of properties, `IHookProperties`, that are passed into an `out` function. By default the properties
@@ -5,6 +8,8 @@ export declare type ILogStrategies = "after" | "before-after";
  *
  * You may override the default `hook` method to format the message output however you like and override
  * the `out` method with any function matching this interface: `(message?: any, ...optionalParams: any[]) => void`.
+ *
+ * You can implement IHasTsLogClassLogger interface and tsLogClassLogger will be used for logging instead. It overrides `out` property.
  *
  * You can also set a logging strategy. By default it logs after function execution. You can set strategy to 'before-after'
  * to make it log before and after function execution.
