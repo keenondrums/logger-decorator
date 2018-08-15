@@ -128,62 +128,37 @@ function applyMonkeyPatch(target, prototype, method, methodName, opts) {
                 className: instance.constructor.name,
                 methodName: methodName,
                 timestamp: Date.now(),
-                arguments: buildParameterHash(params, method),
-                properties: buildPropertyHash(instance),
+                arguments: rest,
+                instance: instance,
                 result: val,
             }));
         };
-        var doLogBefore = function () { return undefined; };
         if (opts.strategy === "before-after") {
-            doLogBefore = function (params) { return doLog(params, "before"); };
+            doLog(rest, "before");
         }
         var doLogAfter = function (params, result) { return doLog(params, "after", result); };
-        var wrapper = function () {
-            var params = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                params[_i] = arguments[_i];
-            }
-            doLogBefore(params);
-            var result = method.apply(instance, params);
+        try {
+            var result = method.apply(instance, rest);
             if (result instanceof Promise) {
                 return result.then(function (val) {
-                    doLogAfter(params, val);
+                    doLogAfter(rest, val);
                     return val;
                 }).catch(function (reason) {
-                    doLogAfter(params, reason);
+                    doLogAfter(rest, reason);
                     return Promise.reject(reason);
                 });
             }
-            doLogAfter(params, result);
+            doLogAfter(rest, result);
             return result;
-        };
-        return wrapper.apply(this, rest);
+        }
+        catch (e) {
+            doLogAfter(rest, e);
+            throw e;
+        }
     };
 }
 function defaultHook(props) {
     return JSON.stringify(props);
-}
-function buildParameterHash(parameterValues, method) {
-    var fnStr = method.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
-    var parameterNames = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(/([^\s,]+)/g);
-    var hash = {};
-    if (parameterNames === null) {
-        return hash;
-    }
-    parameterNames.forEach(function (value, idx) {
-        hash[value] = JSON.stringify(parameterValues[idx]);
-    });
-    return hash;
-}
-;
-function buildPropertyHash(instance) {
-    var hash = {};
-    if (!instance)
-        return hash;
-    Object.keys(instance).forEach(function (key) {
-        hash[key] = JSON.stringify(instance[key]);
-    });
-    return hash;
 }
 
 

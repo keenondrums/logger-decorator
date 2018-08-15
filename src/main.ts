@@ -68,8 +68,8 @@ export interface IHookProperties {
   timestamp: number;
   className: string;
   methodName: string;
-  arguments: { [parameterName: string]: any };
-  properties: { [property: string]: any };
+  arguments: any[];
+  instance: any;
   result: any;
 }
 
@@ -84,65 +84,36 @@ function applyMonkeyPatch(target, prototype, method: Function, methodName: strin
           className: instance.constructor.name,
           methodName,
           timestamp: Date.now(),
-          arguments: buildParameterHash(params, method),
-          properties: buildPropertyHash(instance),
+          arguments: rest,
+          instance,
           result: val,
         })
       );
     }
-    let doLogBefore: (message?: any, ...optionalParams: any[]) => void = () => undefined
     if (opts.strategy === "before-after") {
-      doLogBefore = (params: any[]) => doLog(params, "before")
+      doLog(rest, "before")
     }
     const doLogAfter = (params: any[], result: any) => doLog(params, "after", result)
-    let wrapper = function (...params): any {
-      doLogBefore(params)
-      let result = method.apply(instance, params);
+    try {
+      const result = method.apply(instance, rest);
       if (result instanceof Promise) {
         return result.then(val => {
-          doLogAfter(params, val);
+          doLogAfter(rest, val);
           return val;
         }).catch(reason => {
-          doLogAfter(params, reason);
+          doLogAfter(rest, reason);
           return Promise.reject(reason);
         });
       }
-
-      doLogAfter(params, result);
-      return result;
+      doLogAfter(rest, result)
+      return result
+    } catch (e) {
+      doLogAfter(rest, e)
+      throw e
     }
-    return wrapper.apply(this, rest);
   }
 }
 
 function defaultHook(props: IHookProperties): string {
   return JSON.stringify(props);
-}
-
-function buildParameterHash(parameterValues: any[], method: Function): { [parameterName: string]: any } {
-  const fnStr = method.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
-  let parameterNames: string[] | null = fnStr.slice(
-    fnStr.indexOf('(') + 1,
-    fnStr.indexOf(')')
-  ).match(/([^\s,]+)/g);
-
-  let hash = {};
-  if (parameterNames === null) {
-    return hash;
-  }
-
-  parameterNames.forEach((value: string, idx: number) => {
-    hash[value] = JSON.stringify(parameterValues[idx])
-  });
-
-  return hash;
-};
-
-function buildPropertyHash(instance: any): { [property: string]: any } {
-  let hash = {};
-  if (!instance) return hash;
-  Object.keys(instance).forEach(key => {
-    hash[key] = JSON.stringify(instance[key]);
-  });
-  return hash;
 }

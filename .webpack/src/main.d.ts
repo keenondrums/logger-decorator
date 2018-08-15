@@ -42,11 +42,7 @@ export interface IHookProperties {
     timestamp: number;
     className: string;
     methodName: string;
-    arguments: {
-        [parameterName: string]: any;
-    };
-    properties: {
-        [property: string]: any;
-    };
+    arguments: any[];
+    instance: any;
     result: any;
 }
