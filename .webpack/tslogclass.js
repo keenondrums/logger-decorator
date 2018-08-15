@@ -128,7 +128,7 @@ function applyMonkeyPatch(target, prototype, method, methodName, opts) {
                 className: instance.constructor.name,
                 methodName: methodName,
                 timestamp: Date.now(),
-                arguments: rest,
+                args: rest,
                 instance: instance,
                 result: val,
             }));

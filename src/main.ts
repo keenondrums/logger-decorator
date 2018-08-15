@@ -68,7 +68,7 @@ export interface IHookProperties {
   timestamp: number;
   className: string;
   methodName: string;
-  arguments: any[];
+  args: any[];
   instance: any;
   result: any;
 }
@@ -84,7 +84,7 @@ function applyMonkeyPatch(target, prototype, method: Function, methodName: strin
           className: instance.constructor.name,
           methodName,
           timestamp: Date.now(),
-          arguments: rest,
+          args: rest,
           instance,
           result: val,
         })

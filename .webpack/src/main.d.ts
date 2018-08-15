@@ -42,7 +42,7 @@ export interface IHookProperties {
     timestamp: number;
     className: string;
     methodName: string;
-    arguments: any[];
+    args: any[];
     instance: any;
     result: any;
 }
