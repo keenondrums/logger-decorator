@@ -33,10 +33,12 @@ export default function log(
     let pt = target.prototype;
     let list: string[] = Object.keys(pt).concat(Object.getOwnPropertyNames(pt)).filter((key, idx, arr) => key !== "constructor" && arr.indexOf(key) === idx);
     list.forEach(key => {
-      let fn: IPatchedMethod = applyisMethod(pt[key]);
-      if (fn && !fn.isPatched && fn.isAMethod) {
-        pt[key] = applyMonkeyPatch(target, pt, fn, key, { hook, out, strategy });
-      }
+      try {
+        const fn = pt[key]
+        if (typeof fn === "function") {
+          pt[key] = applyMonkeyPatch(target, pt, fn, key, { hook, out, strategy });
+        }
+      } catch (e) {}
     });
   };
 }
@@ -71,21 +73,7 @@ export interface IHookProperties {
   result: any;
 }
 
-interface IPatchedMethod extends Function {
-  isPatched: boolean;
-  isAMethod: boolean;
-}
-
-function applyisMethod(allegedFn: IPatchedMethod): IPatchedMethod {
-  if (typeof (allegedFn) === "function") {
-    allegedFn.isAMethod = true;
-  }
-  return allegedFn;
-}
-
-function applyMonkeyPatch(target, prototype, method: IPatchedMethod, methodName: string, opts: ILogOptions): Function {
-  method.isPatched = true;
-
+function applyMonkeyPatch(target, prototype, method: Function, methodName: string, opts: ILogOptions): Function {
   return function (...rest): any {
     let instance = this;
     const out = this.tsLogClassLogger || opts.out;

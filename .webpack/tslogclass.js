@@ -103,22 +103,18 @@ function log(_a) {
         var pt = target.prototype;
         var list = Object.keys(pt).concat(Object.getOwnPropertyNames(pt)).filter(function (key, idx, arr) { return key !== "constructor" && arr.indexOf(key) === idx; });
         list.forEach(function (key) {
-            var fn = applyisMethod(pt[key]);
-            if (fn && !fn.isPatched && fn.isAMethod) {
-                pt[key] = applyMonkeyPatch(target, pt, fn, key, { hook: hook, out: out, strategy: strategy });
+            try {
+                var fn = pt[key];
+                if (typeof fn === "function") {
+                    pt[key] = applyMonkeyPatch(target, pt, fn, key, { hook: hook, out: out, strategy: strategy });
+                }
             }
+            catch (e) { }
         });
     };
 }
 exports.default = log;
-function applyisMethod(allegedFn) {
-    if (typeof (allegedFn) === "function") {
-        allegedFn.isAMethod = true;
-    }
-    return allegedFn;
-}
 function applyMonkeyPatch(target, prototype, method, methodName, opts) {
-    method.isPatched = true;
     return function () {
         var rest = [];
         for (var _i = 0; _i < arguments.length; _i++) {
